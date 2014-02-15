@@ -1,6 +1,5 @@
 ``` js
-angularFiles = {
-  'angularSrc': [
+angularFiles = [
     'src/minErr.js',
     'src/Angular.js',
     'src/loader.js',
@@ -65,6 +64,9 @@ angularFiles = {
 //    'src/ng/directive/script.js',
     'src/ng/directive/select.js',
     'src/ng/directive/style.js'
-  ]
-}
+]
 ```
+===============
+changed files
+
+[src/ng/location.js](https://github.com/Tolia/angular.js/commit/0aa42c7ec485ad989e3a85f0a1067ec21648e693)
