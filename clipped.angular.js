@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.13-build.local+sha.70bcd37
+ * @license AngularJS v1.2.13-build.local+sha.0aa42c7
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -68,7 +68,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.2.13-build.local+sha.70bcd37/' +
+    message = message + '\nhttp://errors.angularjs.org/1.2.13-build.local+sha.0aa42c7/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -1836,7 +1836,7 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.2.13-build.local+sha.70bcd37',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.2.13-build.local+sha.0aa42c7',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 2,
   dot: 13,
@@ -1890,13 +1890,13 @@ function publishExternalAPI(angular){
       });
       $provide.provider('$compile', $CompileProvider).
         directive({
-            a: htmlAnchorDirective,
+            // a: htmlAnchorDirective,
             input: inputDirective,
             textarea: inputDirective,
             form: formDirective,
-            script: scriptDirective,
+            //script: scriptDirective,
             select: selectDirective,
-            style: styleDirective,
+            // style: styleDirective,
             option: optionDirective,
             ngBind: ngBindDirective,
             ngBindHtml: ngBindHtmlDirective,
@@ -1915,10 +1915,10 @@ function publishExternalAPI(angular){
             ngPluralize: ngPluralizeDirective,
             ngRepeat: ngRepeatDirective,
             ngShow: ngShowDirective,
-            ngStyle: ngStyleDirective,
-            ngSwitch: ngSwitchDirective,
-            ngSwitchWhen: ngSwitchWhenDirective,
-            ngSwitchDefault: ngSwitchDefaultDirective,
+            // ngStyle: ngStyleDirective,
+            // ngSwitch: ngSwitchDirective,
+            // ngSwitchWhen: ngSwitchWhenDirective,
+            // ngSwitchDefault: ngSwitchDefaultDirective,
             ngOptions: ngOptionsDirective,
             ngTransclude: ngTranscludeDirective,
             ngModel: ngModelDirective,
@@ -3736,6 +3736,333 @@ function createInjector(modulesToLoad) {
     };
   }
 }
+
+/**
+ * @ngdoc function
+ * @name ng.$anchorScroll
+ * @requires $window
+ * @requires $location
+ * @requires $rootScope
+ *
+ * @description
+ * When called, it checks current value of `$location.hash()` and scroll to related element,
+ * according to rules specified in
+ * {@link http://dev.w3.org/html5/spec/Overview.html#the-indicated-part-of-the-document Html5 spec}.
+ *
+ * It also watches the `$location.hash()` and scrolls whenever it changes to match any anchor.
+ * This can be disabled by calling `$anchorScrollProvider.disableAutoScrolling()`.
+ * 
+ * @example
+   <example>
+     <file name="index.html">
+       <div id="scrollArea" ng-controller="ScrollCtrl">
+         <a ng-click="gotoBottom()">Go to bottom</a>
+         <a id="bottom"></a> You're at the bottom!
+       </div>
+     </file>
+     <file name="script.js">
+       function ScrollCtrl($scope, $location, $anchorScroll) {
+         $scope.gotoBottom = function (){
+           // set the location.hash to the id of
+           // the element you wish to scroll to.
+           $location.hash('bottom');
+           
+           // call $anchorScroll()
+           $anchorScroll();
+         }
+       }
+     </file>
+     <file name="style.css">
+       #scrollArea {
+         height: 350px;
+         overflow: auto;
+       }
+
+       #bottom {
+         display: block;
+         margin-top: 2000px;
+       }
+     </file>
+   </example>
+ */
+function $AnchorScrollProvider() {
+
+  var autoScrollingEnabled = true;
+
+  this.disableAutoScrolling = function() {
+    autoScrollingEnabled = false;
+  };
+
+  this.$get = ['$window', '$location', '$rootScope', function($window, $location, $rootScope) {
+    var document = $window.document;
+
+    // helper function to get first anchor from a NodeList
+    // can't use filter.filter, as it accepts only instances of Array
+    // and IE can't convert NodeList to an array using [].slice
+    // TODO(vojta): use filter if we change it to accept lists as well
+    function getFirstAnchor(list) {
+      var result = null;
+      forEach(list, function(element) {
+        if (!result && lowercase(element.nodeName) === 'a') result = element;
+      });
+      return result;
+    }
+
+    function scroll() {
+      var hash = $location.hash(), elm;
+
+      // empty hash, scroll to the top of the page
+      if (!hash) $window.scrollTo(0, 0);
+
+      // element with given id
+      else if ((elm = document.getElementById(hash))) elm.scrollIntoView();
+
+      // first anchor with given name :-D
+      else if ((elm = getFirstAnchor(document.getElementsByName(hash)))) elm.scrollIntoView();
+
+      // no element and hash == 'top', scroll to the top of the page
+      else if (hash === 'top') $window.scrollTo(0, 0);
+    }
+
+    // does not scroll when user clicks on anchor link that is currently on
+    // (no url change, no $location.hash() change), browser native does scroll
+    if (autoScrollingEnabled) {
+      $rootScope.$watch(function autoScrollWatch() {return $location.hash();},
+        function autoScrollWatchAction() {
+          $rootScope.$evalAsync(scroll);
+        });
+    }
+
+    return scroll;
+  }];
+}
+
+var $animateMinErr = minErr('$animate');
+
+/**
+ * @ngdoc object
+ * @name ng.$animateProvider
+ *
+ * @description
+ * Default implementation of $animate that doesn't perform any animations, instead just
+ * synchronously performs DOM
+ * updates and calls done() callbacks.
+ *
+ * In order to enable animations the ngAnimate module has to be loaded.
+ *
+ * To see the functional implementation check out src/ngAnimate/animate.js
+ */
+var $AnimateProvider = ['$provide', function($provide) {
+
+  
+  this.$$selectors = {};
+
+
+  /**
+   * @ngdoc function
+   * @name ng.$animateProvider#register
+   * @methodOf ng.$animateProvider
+   *
+   * @description
+   * Registers a new injectable animation factory function. The factory function produces the
+   * animation object which contains callback functions for each event that is expected to be
+   * animated.
+   *
+   *   * `eventFn`: `function(Element, doneFunction)` The element to animate, the `doneFunction`
+   *   must be called once the element animation is complete. If a function is returned then the
+   *   animation service will use this function to cancel the animation whenever a cancel event is
+   *   triggered.
+   *
+   *
+   *<pre>
+   *   return {
+     *     eventFn : function(element, done) {
+     *       //code to run the animation
+     *       //once complete, then run done()
+     *       return function cancellationFunction() {
+     *         //code to cancel the animation
+     *       }
+     *     }
+     *   }
+   *</pre>
+   *
+   * @param {string} name The name of the animation.
+   * @param {function} factory The factory function that will be executed to return the animation
+   *                           object.
+   */
+  this.register = function(name, factory) {
+    var key = name + '-animation';
+    if (name && name.charAt(0) != '.') throw $animateMinErr('notcsel',
+        "Expecting class selector starting with '.' got '{0}'.", name);
+    this.$$selectors[name.substr(1)] = key;
+    $provide.factory(key, factory);
+  };
+
+  /**
+   * @ngdoc function
+   * @name ng.$animateProvider#classNameFilter
+   * @methodOf ng.$animateProvider
+   *
+   * @description
+   * Sets and/or returns the CSS class regular expression that is checked when performing
+   * an animation. Upon bootstrap the classNameFilter value is not set at all and will
+   * therefore enable $animate to attempt to perform an animation on any element.
+   * When setting the classNameFilter value, animations will only be performed on elements
+   * that successfully match the filter expression. This in turn can boost performance
+   * for low-powered devices as well as applications containing a lot of structural operations.
+   * @param {RegExp=} expression The className expression which will be checked against all animations
+   * @return {RegExp} The current CSS className expression value. If null then there is no expression value
+   */
+  this.classNameFilter = function(expression) {
+    if(arguments.length === 1) {
+      this.$$classNameFilter = (expression instanceof RegExp) ? expression : null;
+    }
+    return this.$$classNameFilter;
+  };
+
+  this.$get = ['$timeout', function($timeout) {
+
+    /**
+     *
+     * @ngdoc object
+     * @name ng.$animate
+     * @description The $animate service provides rudimentary DOM manipulation functions to
+     * insert, remove and move elements within the DOM, as well as adding and removing classes.
+     * This service is the core service used by the ngAnimate $animator service which provides
+     * high-level animation hooks for CSS and JavaScript.
+     *
+     * $animate is available in the AngularJS core, however, the ngAnimate module must be included
+     * to enable full out animation support. Otherwise, $animate will only perform simple DOM
+     * manipulation operations.
+     *
+     * To learn more about enabling animation support, click here to visit the {@link ngAnimate
+     * ngAnimate module page} as well as the {@link ngAnimate.$animate ngAnimate $animate service
+     * page}.
+     */
+    return {
+
+      /**
+       *
+       * @ngdoc function
+       * @name ng.$animate#enter
+       * @methodOf ng.$animate
+       * @function
+       * @description Inserts the element into the DOM either after the `after` element or within
+       *   the `parent` element. Once complete, the done() callback will be fired (if provided).
+       * @param {jQuery/jqLite element} element the element which will be inserted into the DOM
+       * @param {jQuery/jqLite element} parent the parent element which will append the element as
+       *   a child (if the after element is not present)
+       * @param {jQuery/jqLite element} after the sibling element which will append the element
+       *   after itself
+       * @param {function=} done callback function that will be called after the element has been
+       *   inserted into the DOM
+       */
+      enter : function(element, parent, after, done) {
+        if (after) {
+          after.after(element);
+        } else {
+          if (!parent || !parent[0]) {
+            parent = after.parent();
+          }
+          parent.append(element);
+        }
+        done && $timeout(done, 0, false);
+      },
+
+      /**
+       *
+       * @ngdoc function
+       * @name ng.$animate#leave
+       * @methodOf ng.$animate
+       * @function
+       * @description Removes the element from the DOM. Once complete, the done() callback will be
+       *   fired (if provided).
+       * @param {jQuery/jqLite element} element the element which will be removed from the DOM
+       * @param {function=} done callback function that will be called after the element has been
+       *   removed from the DOM
+       */
+      leave : function(element, done) {
+        element.remove();
+        done && $timeout(done, 0, false);
+      },
+
+      /**
+       *
+       * @ngdoc function
+       * @name ng.$animate#move
+       * @methodOf ng.$animate
+       * @function
+       * @description Moves the position of the provided element within the DOM to be placed
+       * either after the `after` element or inside of the `parent` element. Once complete, the
+       * done() callback will be fired (if provided).
+       * 
+       * @param {jQuery/jqLite element} element the element which will be moved around within the
+       *   DOM
+       * @param {jQuery/jqLite element} parent the parent element where the element will be
+       *   inserted into (if the after element is not present)
+       * @param {jQuery/jqLite element} after the sibling element where the element will be
+       *   positioned next to
+       * @param {function=} done the callback function (if provided) that will be fired after the
+       *   element has been moved to its new position
+       */
+      move : function(element, parent, after, done) {
+        // Do not remove element before insert. Removing will cause data associated with the
+        // element to be dropped. Insert will implicitly do the remove.
+        this.enter(element, parent, after, done);
+      },
+
+      /**
+       *
+       * @ngdoc function
+       * @name ng.$animate#addClass
+       * @methodOf ng.$animate
+       * @function
+       * @description Adds the provided className CSS class value to the provided element. Once
+       * complete, the done() callback will be fired (if provided).
+       * @param {jQuery/jqLite element} element the element which will have the className value
+       *   added to it
+       * @param {string} className the CSS class which will be added to the element
+       * @param {function=} done the callback function (if provided) that will be fired after the
+       *   className value has been added to the element
+       */
+      addClass : function(element, className, done) {
+        className = isString(className) ?
+                      className :
+                      isArray(className) ? className.join(' ') : '';
+        forEach(element, function (element) {
+          jqLiteAddClass(element, className);
+        });
+        done && $timeout(done, 0, false);
+      },
+
+      /**
+       *
+       * @ngdoc function
+       * @name ng.$animate#removeClass
+       * @methodOf ng.$animate
+       * @function
+       * @description Removes the provided className CSS class value from the provided element.
+       * Once complete, the done() callback will be fired (if provided).
+       * @param {jQuery/jqLite element} element the element which will have the className value
+       *   removed from it
+       * @param {string} className the CSS class which will be removed from the element
+       * @param {function=} done the callback function (if provided) that will be fired after the
+       *   className value has been removed from the element
+       */
+      removeClass : function(element, className, done) {
+        className = isString(className) ?
+                      className :
+                      isArray(className) ? className.join(' ') : '';
+        forEach(element, function (element) {
+          jqLiteRemoveClass(element, className);
+        });
+        done && $timeout(done, 0, false);
+      },
+
+      enabled : noop
+    };
+  }];
+}];
 
 /**
  * ! This is a private undocumented service !
@@ -7566,6 +7893,194 @@ function $HttpProvider() {
 
 
   }];
+}
+
+function createXhr(method) {
+    //if IE and the method is not RFC2616 compliant, or if XMLHttpRequest
+    //is not available, try getting an ActiveXObject. Otherwise, use XMLHttpRequest
+    //if it is available
+    if (msie <= 8 && (!method.match(/^(get|post|head|put|delete|options)$/i) ||
+      !window.XMLHttpRequest)) {
+      return new window.ActiveXObject("Microsoft.XMLHTTP");
+    } else if (window.XMLHttpRequest) {
+      return new window.XMLHttpRequest();
+    }
+
+    throw minErr('$httpBackend')('noxhr', "This browser does not support XMLHttpRequest.");
+}
+
+/**
+ * @ngdoc object
+ * @name ng.$httpBackend
+ * @requires $browser
+ * @requires $window
+ * @requires $document
+ *
+ * @description
+ * HTTP backend used by the {@link ng.$http service} that delegates to
+ * XMLHttpRequest object or JSONP and deals with browser incompatibilities.
+ *
+ * You should never need to use this service directly, instead use the higher-level abstractions:
+ * {@link ng.$http $http} or {@link ngResource.$resource $resource}.
+ *
+ * During testing this implementation is swapped with {@link ngMock.$httpBackend mock
+ * $httpBackend} which can be trained with responses.
+ */
+function $HttpBackendProvider() {
+  this.$get = ['$browser', '$window', '$document', function($browser, $window, $document) {
+    return createHttpBackend($browser, createXhr, $browser.defer, $window.angular.callbacks, $document[0]);
+  }];
+}
+
+function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDocument) {
+  var ABORTED = -1;
+
+  // TODO(vojta): fix the signature
+  return function(method, url, post, callback, headers, timeout, withCredentials, responseType) {
+    var status;
+    $browser.$$incOutstandingRequestCount();
+    url = url || $browser.url();
+
+    if (lowercase(method) == 'jsonp') {
+      var callbackId = '_' + (callbacks.counter++).toString(36);
+      callbacks[callbackId] = function(data) {
+        callbacks[callbackId].data = data;
+      };
+
+      var jsonpDone = jsonpReq(url.replace('JSON_CALLBACK', 'angular.callbacks.' + callbackId),
+          function() {
+        if (callbacks[callbackId].data) {
+          completeRequest(callback, 200, callbacks[callbackId].data);
+        } else {
+          completeRequest(callback, status || -2);
+        }
+        callbacks[callbackId] = angular.noop;
+      });
+    } else {
+
+      var xhr = createXhr(method);
+
+      xhr.open(method, url, true);
+      forEach(headers, function(value, key) {
+        if (isDefined(value)) {
+            xhr.setRequestHeader(key, value);
+        }
+      });
+
+      // In IE6 and 7, this might be called synchronously when xhr.send below is called and the
+      // response is in the cache. the promise api will ensure that to the app code the api is
+      // always async
+      xhr.onreadystatechange = function() {
+        // onreadystatechange might get called multiple times with readyState === 4 on mobile webkit caused by
+        // xhrs that are resolved while the app is in the background (see #5426).
+        // since calling completeRequest sets the `xhr` variable to null, we just check if it's not null before
+        // continuing
+        //
+        // we can't set xhr.onreadystatechange to undefined or delete it because that breaks IE8 (method=PATCH) and
+        // Safari respectively.
+        if (xhr && xhr.readyState == 4) {
+          var responseHeaders = null,
+              response = null;
+
+          if(status !== ABORTED) {
+            responseHeaders = xhr.getAllResponseHeaders();
+
+            // responseText is the old-school way of retrieving response (supported by IE8 & 9)
+            // response/responseType properties were introduced in XHR Level2 spec (supported by IE10)
+            response = ('response' in xhr) ? xhr.response : xhr.responseText;
+          }
+
+          completeRequest(callback,
+              status || xhr.status,
+              response,
+              responseHeaders);
+        }
+      };
+
+      if (withCredentials) {
+        xhr.withCredentials = true;
+      }
+
+      if (responseType) {
+        try {
+          xhr.responseType = responseType;
+        } catch (e) {
+          // WebKit added support for the json responseType value on 09/03/2013
+          // https://bugs.webkit.org/show_bug.cgi?id=73648. Versions of Safari prior to 7 are
+          // known to throw when setting the value "json" as the response type. Other older
+          // browsers implementing the responseType 
+          //
+          // The json response type can be ignored if not supported, because JSON payloads are
+          // parsed on the client-side regardless.
+          if (responseType !== 'json') {
+            throw e;
+          }
+        }
+      }
+
+      xhr.send(post || null);
+    }
+
+    if (timeout > 0) {
+      var timeoutId = $browserDefer(timeoutRequest, timeout);
+    } else if (timeout && timeout.then) {
+      timeout.then(timeoutRequest);
+    }
+
+
+    function timeoutRequest() {
+      status = ABORTED;
+      jsonpDone && jsonpDone();
+      xhr && xhr.abort();
+    }
+
+    function completeRequest(callback, status, response, headersString) {
+      // cancel timeout and subsequent timeout promise resolution
+      timeoutId && $browserDefer.cancel(timeoutId);
+      jsonpDone = xhr = null;
+
+      // fix status code when it is 0 (0 status is undocumented).
+      // Occurs when accessing file resources.
+      // On Android 4.1 stock browser it occurs while retrieving files from application cache.
+      status = (status === 0) ? (response ? 200 : 404) : status;
+
+      // normalize IE bug (http://bugs.jquery.com/ticket/1450)
+      status = status == 1223 ? 204 : status;
+
+      callback(status, response, headersString);
+      $browser.$$completeOutstandingRequest(noop);
+    }
+  };
+
+  function jsonpReq(url, done) {
+    // we can't use jQuery/jqLite here because jQuery does crazy shit with script elements, e.g.:
+    // - fetches local scripts via XHR and evals them
+    // - adds and immediately removes script elements from the document
+    var script = rawDocument.createElement('script'),
+        doneWrapper = function() {
+          script.onreadystatechange = script.onload = script.onerror = null;
+          rawDocument.body.removeChild(script);
+          if (done) done();
+        };
+
+    script.type = 'text/javascript';
+    script.src = url;
+
+    if (msie && msie <= 8) {
+      script.onreadystatechange = function() {
+        if (/loaded|complete/.test(script.readyState)) {
+          doneWrapper();
+        }
+      };
+    } else {
+      script.onload = script.onerror = function() {
+        doneWrapper();
+      };
+    }
+
+    rawDocument.body.appendChild(script);
+    return doneWrapper;
+  }
 }
 
 var $interpolateMinErr = minErr('$interpolate');
@@ -19134,193 +19649,6 @@ var ngHideDirective = ['$animate', function($animate) {
 
 /**
  * @ngdoc directive
- * @name ng.directive:ngSwitch
- * @restrict EA
- *
- * @description
- * The `ngSwitch` directive is used to conditionally swap DOM structure on your template based on a scope expression.
- * Elements within `ngSwitch` but without `ngSwitchWhen` or `ngSwitchDefault` directives will be preserved at the location
- * as specified in the template.
- *
- * The directive itself works similar to ngInclude, however, instead of downloading template code (or loading it
- * from the template cache), `ngSwitch` simply chooses one of the nested elements and makes it visible based on which element
- * matches the value obtained from the evaluated expression. In other words, you define a container element
- * (where you place the directive), place an expression on the **`on="..."` attribute**
- * (or the **`ng-switch="..."` attribute**), define any inner elements inside of the directive and place
- * a when attribute per element. The when attribute is used to inform ngSwitch which element to display when the on
- * expression is evaluated. If a matching expression is not found via a when attribute then an element with the default
- * attribute is displayed.
- *
- * <div class="alert alert-info">
- * Be aware that the attribute values to match against cannot be expressions. They are interpreted
- * as literal string values to match against.
- * For example, **`ng-switch-when="someVal"`** will match against the string `"someVal"` not against the
- * value of the expression `$scope.someVal`.
- * </div>
-
- * @animations
- * enter - happens after the ngSwitch contents change and the matched child element is placed inside the container
- * leave - happens just after the ngSwitch contents change and just before the former contents are removed from the DOM
- *
- * @usage
- * <ANY ng-switch="expression">
- *   <ANY ng-switch-when="matchValue1">...</ANY>
- *   <ANY ng-switch-when="matchValue2">...</ANY>
- *   <ANY ng-switch-default>...</ANY>
- * </ANY>
- *
- *
- * @scope
- * @priority 800
- * @param {*} ngSwitch|on expression to match against <tt>ng-switch-when</tt>.
- * @paramDescription
- * On child elements add:
- *
- * * `ngSwitchWhen`: the case statement to match against. If match then this
- *   case will be displayed. If the same match appears multiple times, all the
- *   elements will be displayed.
- * * `ngSwitchDefault`: the default case when no other case match. If there
- *   are multiple default cases, all of them will be displayed when no other
- *   case match.
- *
- *
- * @example
-  <example animations="true">
-    <file name="index.html">
-      <div ng-controller="Ctrl">
-        <select ng-model="selection" ng-options="item for item in items">
-        </select>
-        <tt>selection={{selection}}</tt>
-        <hr/>
-        <div class="animate-switch-container"
-          ng-switch on="selection">
-            <div class="animate-switch" ng-switch-when="settings">Settings Div</div>
-            <div class="animate-switch" ng-switch-when="home">Home Span</div>
-            <div class="animate-switch" ng-switch-default>default</div>
-        </div>
-      </div>
-    </file>
-    <file name="script.js">
-      function Ctrl($scope) {
-        $scope.items = ['settings', 'home', 'other'];
-        $scope.selection = $scope.items[0];
-      }
-    </file>
-    <file name="animations.css">
-      .animate-switch-container {
-        position:relative;
-        background:white;
-        border:1px solid black;
-        height:40px;
-        overflow:hidden;
-      }
-
-      .animate-switch {
-        padding:10px;
-      }
-
-      .animate-switch.ng-animate {
-        -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
-        transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
-
-        position:absolute;
-        top:0;
-        left:0;
-        right:0;
-        bottom:0;
-      }
-
-      .animate-switch.ng-leave.ng-leave-active,
-      .animate-switch.ng-enter {
-        top:-50px;
-      }
-      .animate-switch.ng-leave,
-      .animate-switch.ng-enter.ng-enter-active {
-        top:0;
-      }
-    </file>
-    <file name="protractorTest.js">
-      var switchElem = element(by.css('.doc-example-live [ng-switch]'));
-      var select = element(by.model('selection'));
-
-      it('should start in settings', function() {
-        expect(switchElem.getText()).toMatch(/Settings Div/);
-      });
-      it('should change to home', function() {
-        select.element.all(by.css('option')).get(1).click();
-        expect(switchElem.getText()).toMatch(/Home Span/);
-      });
-      it('should select default', function() {
-        select.element.all(by.css('option')).get(2).click();
-        expect(switchElem.getText()).toMatch(/default/);
-      });
-    </file>
-  </example>
- */
-var ngSwitchDirective = ['$animate', function($animate) {
-  return {
-    restrict: 'EA',
-    require: 'ngSwitch',
-
-    // asks for $scope to fool the BC controller module
-    controller: ['$scope', function ngSwitchController() {
-     this.cases = {};
-    }],
-    link: function(scope, element, attr, ngSwitchController) {
-      var watchExpr = attr.ngSwitch || attr.on,
-          selectedTranscludes,
-          selectedElements,
-          selectedScopes = [];
-
-      scope.$watch(watchExpr, function ngSwitchWatchAction(value) {
-        for (var i= 0, ii=selectedScopes.length; i<ii; i++) {
-          selectedScopes[i].$destroy();
-          $animate.leave(selectedElements[i]);
-        }
-
-        selectedElements = [];
-        selectedScopes = [];
-
-        if ((selectedTranscludes = ngSwitchController.cases['!' + value] || ngSwitchController.cases['?'])) {
-          scope.$eval(attr.change);
-          forEach(selectedTranscludes, function(selectedTransclude) {
-            var selectedScope = scope.$new();
-            selectedScopes.push(selectedScope);
-            selectedTransclude.transclude(selectedScope, function(caseElement) {
-              var anchor = selectedTransclude.element;
-
-              selectedElements.push(caseElement);
-              $animate.enter(caseElement, anchor.parent(), anchor);
-            });
-          });
-        }
-      });
-    }
-  };
-}];
-
-var ngSwitchWhenDirective = ngDirective({
-  transclude: 'element',
-  priority: 800,
-  require: '^ngSwitch',
-  link: function(scope, element, attrs, ctrl, $transclude) {
-    ctrl.cases['!' + attrs.ngSwitchWhen] = (ctrl.cases['!' + attrs.ngSwitchWhen] || []);
-    ctrl.cases['!' + attrs.ngSwitchWhen].push({ transclude: $transclude, element: element });
-  }
-});
-
-var ngSwitchDefaultDirective = ngDirective({
-  transclude: 'element',
-  priority: 800,
-  require: '^ngSwitch',
-  link: function(scope, element, attr, ctrl, $transclude) {
-    ctrl.cases['?'] = (ctrl.cases['?'] || []);
-    ctrl.cases['?'].push({ transclude: $transclude, element: element });
-   }
-});
-
-/**
- * @ngdoc directive
  * @name ng.directive:ngTransclude
  * @restrict AC
  *
@@ -20020,11 +20348,6 @@ var optionDirective = ['$interpolate', function($interpolate) {
     }
   };
 }];
-
-var styleDirective = valueFn({
-  restrict: 'E',
-  terminal: true
-});
 
   //try to bind to jquery now so that one can write angular.element().read()
   //but we will rebind on bootstrap again.
