@@ -1,0 +1,3 @@
+[submodule "angular.js"]
+	path = angular.js
+	url = git@github.com:Tolia/angular.js.git
