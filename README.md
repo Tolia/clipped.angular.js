@@ -68,4 +68,5 @@ angularFiles = [
 ```
 ===============
 changed files
+
 [src/ng/location.js](https://github.com/Tolia/angular.js/commit/0aa42c7ec485ad989e3a85f0a1067ec21648e693)
