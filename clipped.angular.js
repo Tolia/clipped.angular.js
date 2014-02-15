@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.13-build.local+sha.a9fcb0d
+ * @license AngularJS v1.2.13-build.local+sha.70bcd37
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -68,7 +68,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.2.13-build.local+sha.a9fcb0d/' +
+    message = message + '\nhttp://errors.angularjs.org/1.2.13-build.local+sha.70bcd37/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -1836,7 +1836,7 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.2.13-build.local+sha.a9fcb0d',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.2.13-build.local+sha.70bcd37',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 2,
   dot: 13,
@@ -8679,41 +8679,41 @@ function $LocationProvider(){
     $location = new LocationMode(appBase, '#' + hashPrefix);
     $location.$$parse($location.$$rewrite(initialUrl));
 
-    $rootElement.on('click', function(event) {
-      // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
-      // currently we open nice url link and redirect then
+    // $rootElement.on('click', function(event) {
+    //   // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
+    //   // currently we open nice url link and redirect then
 
-      if (event.ctrlKey || event.metaKey || event.which == 2) return;
+    //   if (event.ctrlKey || event.metaKey || event.which == 2) return;
 
-      var elm = jqLite(event.target);
+    //   var elm = jqLite(event.target);
 
-      // traverse the DOM up to find first A tag
-      while (lowercase(elm[0].nodeName) !== 'a') {
-        // ignore rewriting if no A tag (reached root element, or no parent - removed from document)
-        if (elm[0] === $rootElement[0] || !(elm = elm.parent())[0]) return;
-      }
+    //   // traverse the DOM up to find first A tag
+    //   while (lowercase(elm[0].nodeName) !== 'a') {
+    //     // ignore rewriting if no A tag (reached root element, or no parent - removed from document)
+    //     if (elm[0] === $rootElement[0] || !(elm = elm.parent())[0]) return;
+    //   }
 
-      var absHref = elm.prop('href');
+    //   var absHref = elm.prop('href');
 
-      if (isObject(absHref) && absHref.toString() === '[object SVGAnimatedString]') {
-        // SVGAnimatedString.animVal should be identical to SVGAnimatedString.baseVal, unless during
-        // an animation.
-        absHref = urlResolve(absHref.animVal).href;
-      }
+    //   if (isObject(absHref) && absHref.toString() === '[object SVGAnimatedString]') {
+    //     // SVGAnimatedString.animVal should be identical to SVGAnimatedString.baseVal, unless during
+    //     // an animation.
+    //     absHref = urlResolve(absHref.animVal).href;
+    //   }
 
-      var rewrittenUrl = $location.$$rewrite(absHref);
+    //   var rewrittenUrl = $location.$$rewrite(absHref);
 
-      if (absHref && !elm.attr('target') && rewrittenUrl && !event.isDefaultPrevented()) {
-        event.preventDefault();
-        if (rewrittenUrl != $browser.url()) {
-          // update location manually
-          $location.$$parse(rewrittenUrl);
-          $rootScope.$apply();
-          // hack to work around FF6 bug 684208 when scenario runner clicks on links
-          window.angular['ff-684208-preventDefault'] = true;
-        }
-      }
-    });
+    //   if (absHref && !elm.attr('target') && rewrittenUrl && !event.isDefaultPrevented()) {
+    //     event.preventDefault();
+    //     if (rewrittenUrl != $browser.url()) {
+    //       // update location manually
+    //       $location.$$parse(rewrittenUrl);
+    //       $rootScope.$apply();
+    //       // hack to work around FF6 bug 684208 when scenario runner clicks on links
+    //       window.angular['ff-684208-preventDefault'] = true;
+    //     }
+    //   }
+    // });
 
 
     // rewrite hashbang url <> html5 url
