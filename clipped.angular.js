@@ -9184,7 +9184,7 @@ function $LocationProvider(){
         initialUrl = $browser.url(),
         appBase;
 
-    if ($sniffer.history)
+    if ($sniffer.history) {
       appBase = serverBase(initialUrl) + (baseHref || '/');
       LocationMode = LocationHtml5Url;
     } else {
