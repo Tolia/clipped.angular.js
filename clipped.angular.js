@@ -9184,12 +9184,12 @@ function $LocationProvider(){
         initialUrl = $browser.url(),
         appBase;
 
-    if (html5Mode) {
+    if $sniffer.history
       appBase = serverBase(initialUrl) + (baseHref || '/');
-      LocationMode = $sniffer.history ? LocationHtml5Url : LocationHashbangInHtml5Url;
+      LocationMode = LocationHtml5Url;
     } else {
       appBase = stripHash(initialUrl);
-      LocationMode = LocationHashbangUrl;
+      LocationMode = LocationHashbangInHtml5Url;
     }
     $location = new LocationMode(appBase, '#' + hashPrefix);
     $location.$$parse($location.$$rewrite(initialUrl));
