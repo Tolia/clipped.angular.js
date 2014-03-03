@@ -1,14 +1,12 @@
 {
   "name": "clipped.angular.js",
   "main": "clipped.angular.js",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/Tolia/clipped.angular.js",
   "authors": [
     "tolia <toliademidov@gmail.com>"
   ],
   "description": "clipped angular.js",
   "license": "MIT",
-  "ignore": [
-    "angular.js"
-  ]
+  "dependencies": {}
 }
