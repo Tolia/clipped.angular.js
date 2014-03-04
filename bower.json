@@ -1,7 +1,7 @@
 {
   "name": "angular",
   "main": "clipped.angular.js",
-  "version": "1.2.13-build.local+sha.977401c",
+  "version": "1.2.13-build.local+sha.55d08f4",
   "homepage": "https://github.com/Tolia/clipped.angular.js",
   "dependencies": {}
 }
